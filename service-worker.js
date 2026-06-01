@@ -1,5 +1,5 @@
-const CACHE = "banmuang-foodmap-v3";
-const ASSETS = ["./","./index.html","./css/style.css","./js/app.js","./manifest.json"];
+const CACHE = "banmuang-foodmap-sheet-v1";
+const ASSETS = ["./","./index.html","./css/style.css","./js/app.js","./data/places.json","./manifest.json"];
 self.addEventListener("install", e => {
   self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
@@ -9,7 +9,7 @@ self.addEventListener("activate", e => {
 });
 self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
-  if (url.hostname.includes("overpass") || url.hostname.includes("openstreetmap") || url.hostname.includes("unpkg")) {
+  if(url.hostname.includes("docs.google.com") || url.hostname.includes("googleusercontent.com") || url.hostname.includes("tile.openstreetmap.org") || url.hostname.includes("unpkg.com")){
     e.respondWith(fetch(e.request));
     return;
   }

@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>บ้านม่วง FoodMap</title>
   <meta name="theme-color" content="#0f172a">
   <link rel="manifest" href="./manifest.json">
@@ -13,42 +13,47 @@
   <div class="app">
     <header class="hero">
       <div>
-        <div class="badge">ฟรี 100% • OpenStreetMap</div>
+        <div class="badge">Google Sheet Database • GitHub Pages</div>
         <h1>🍜 บ้านม่วง FoodMap</h1>
-        <p>ค้นหาร้านอาหาร คาเฟ่ ร้านกาแฟ และร้านใกล้ตัวในอำเภอบ้านม่วง จังหวัดสกลนคร</p>
+        <p>แผนที่ปักหมุดร้านอาหาร คาเฟ่ ร้านกาแฟ และร้านแนะนำในอำเภอบ้านม่วง</p>
       </div>
       <button id="installBtn" class="ghost hidden">ติดตั้งแอป</button>
     </header>
 
-    <section class="panel search-panel">
-      <div class="row">
-        <button id="locateBtn" class="primary">📍 ใช้ตำแหน่งฉัน</button>
-        <button id="homeBtn" class="secondary">🏠 จุดกลางบ้านม่วง</button>
+    <section class="panel toolbar">
+      <div class="searchbox">
+        <input id="q" type="search" placeholder="ค้นหาชื่อร้าน / ประเภท / เมนู เช่น กาแฟ ก๋วยเตี๋ยว หมูกระทะ">
+        <button id="clearBtn" class="secondary">ล้าง</button>
       </div>
 
       <div class="grid">
         <label>หมวดหมู่
           <select id="category">
-            <option value="food_all" selected>🍜 อาหาร + คาเฟ่ ทั้งหมด</option>
-            <option value="restaurant">🍛 ร้านอาหาร</option>
-            <option value="cafe">☕ คาเฟ่ / กาแฟ</option>
-            <option value="fast_food">🍔 ฟาสต์ฟู้ด</option>
-            <option value="shop_food">🛒 ร้านค้า/ของกิน</option>
+            <option value="">ทั้งหมด</option>
+            <option value="ร้านอาหาร">🍛 ร้านอาหาร</option>
+            <option value="คาเฟ่">☕ คาเฟ่</option>
+            <option value="ร้านกาแฟ">🥤 ร้านกาแฟ</option>
+            <option value="หมูกระทะ">🥩 หมูกระทะ</option>
+            <option value="ของหวาน">🍧 ของหวาน</option>
+            <option value="ร้านค้า">🛒 ร้านค้า</option>
           </select>
         </label>
-        <label>รัศมี
-          <select id="radius">
-            <option value="3000">3 กม.</option>
-            <option value="5000" selected>5 กม.</option>
-            <option value="10000">10 กม.</option>
-            <option value="15000">15 กม.</option>
-            <option value="25000">25 กม.</option>
+
+        <label>เรียงลำดับ
+          <select id="sort">
+            <option value="name">ชื่อร้าน</option>
+            <option value="category">หมวดหมู่</option>
           </select>
         </label>
       </div>
 
-      <button id="searchBtn" class="search">🔎 ค้นหาร้านใกล้จุดปักหมุด</button>
-      <div id="status" class="status">แตะบนแผนที่เพื่อปักหมุด หรือกดใช้ตำแหน่งฉัน</div>
+      <div class="row">
+        <button id="homeBtn" class="primary">🏠 กลับจุดกลางบ้านม่วง</button>
+        <button id="locateBtn" class="secondary">📍 ตำแหน่งฉัน</button>
+        <a id="sheetBtn" class="sheet-link" target="_blank" href="#">✏️ แก้ไขข้อมูลร้านใน Google Sheet</a>
+      </div>
+
+      <div id="status" class="status">กำลังโหลดข้อมูลร้าน...</div>
     </section>
 
     <main class="layout">
@@ -58,21 +63,19 @@
 
       <section class="results-card">
         <div class="results-head">
-          <h2>ร้านที่พบ</h2>
+          <h2>รายการร้าน</h2>
           <span id="count">0 ร้าน</span>
         </div>
-        <div id="results" class="results">
-          <div class="empty">กด “ค้นหาร้านใกล้จุดปักหมุด” เพื่อเริ่มค้นหา</div>
-        </div>
+        <div id="results" class="results"></div>
       </section>
     </main>
 
     <footer>
-      ข้อมูลร้านมาจาก OpenStreetMap/Overpass API ถ้าไม่พบร้าน แปลว่าข้อมูลใน OSM พื้นที่นั้นยังน้อย
+      วิธีแก้ไขข้อมูล: เปิด Google Sheet → เพิ่มแถวร้าน → ใส่ lat/lng → เว็บจะอัปเดตตามข้อมูลใน Sheet
     </footer>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="./js/app.js?v=3"></script>
+  <script src="./js/app.js?v=sheet1"></script>
 </body>
 </html>

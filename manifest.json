@@ -6,6 +6,6 @@
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
-  "description": "ค้นหาร้านอาหารในอำเภอบ้านม่วงด้วย OpenStreetMap",
+  "description": "แผนที่ร้านอาหารบ้านม่วงจาก Google Sheet",
   "icons": []
 }
