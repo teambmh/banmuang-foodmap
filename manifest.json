@@ -1,0 +1,10 @@
+{
+  "name": "บ้านม่วง FoodMap",
+  "short_name": "FoodMap",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "description": "ค้นหาร้านอาหารในอำเภอบ้านม่วงด้วย OpenStreetMap",
+  "icons": []
+}
