@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>บ้านม่วง FoodMap</title>
   <meta name="theme-color" content="#0f172a">
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
   <div class="app">
@@ -23,25 +23,26 @@
     <section class="panel search-panel">
       <div class="row">
         <button id="locateBtn" class="primary">📍 ใช้ตำแหน่งฉัน</button>
-        <button id="homeBtn" class="secondary">🏠 บ้านม่วง</button>
+        <button id="homeBtn" class="secondary">🏠 จุดกลางบ้านม่วง</button>
       </div>
 
       <div class="grid">
         <label>หมวดหมู่
           <select id="category">
+            <option value="food_all" selected>🍜 อาหาร + คาเฟ่ ทั้งหมด</option>
             <option value="restaurant">🍛 ร้านอาหาร</option>
             <option value="cafe">☕ คาเฟ่ / กาแฟ</option>
             <option value="fast_food">🍔 ฟาสต์ฟู้ด</option>
-            <option value="food_all">🍜 ทั้งหมด</option>
+            <option value="shop_food">🛒 ร้านค้า/ของกิน</option>
           </select>
         </label>
         <label>รัศมี
           <select id="radius">
-            <option value="1000">1 กม.</option>
             <option value="3000">3 กม.</option>
             <option value="5000" selected>5 กม.</option>
             <option value="10000">10 กม.</option>
             <option value="15000">15 กม.</option>
+            <option value="25000">25 กม.</option>
           </select>
         </label>
       </div>
@@ -67,11 +68,11 @@
     </main>
 
     <footer>
-      ข้อมูลร้านมาจาก OpenStreetMap/Overpass API อาจไม่ครบเท่า Google Maps
+      ข้อมูลร้านมาจาก OpenStreetMap/Overpass API ถ้าไม่พบร้าน แปลว่าข้อมูลใน OSM พื้นที่นั้นยังน้อย
     </footer>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="js/app.js"></script>
+  <script src="./js/app.js?v=3"></script>
 </body>
 </html>

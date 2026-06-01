@@ -2,8 +2,8 @@ const BANMUANG = { lat: 17.85167, lng: 103.57 };
 let current = { ...BANMUANG };
 let userMarker, circle, markers = [];
 
-const map = L.map("map", { zoomControl: true }).setView([BANMUANG.lat, BANMUANG.lng], 14);
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+const map = L.map("map", { zoomControl: true }).setView([BANMUANG.lat, BANMUANG.lng], 13);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 19,
   attribution: "&copy; OpenStreetMap contributors"
 }).addTo(map);
@@ -28,8 +28,8 @@ function setPoint(lat,lng){
     setPoint(p.lat,p.lng);
   });
   const r = Number(document.getElementById("radius").value);
-  circle = L.circle([lat,lng], {radius:r}).addTo(map);
-  map.setView([lat,lng], 14);
+  circle = L.circle([lat,lng], {radius:r, color:"#38bdf8", fillColor:"#38bdf8", fillOpacity:.08}).addTo(map);
+  map.setView([lat,lng], 13);
   setStatus(`จุดค้นหา: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
 }
 setPoint(BANMUANG.lat, BANMUANG.lng);
@@ -51,30 +51,46 @@ document.getElementById("radius").onchange = () => setPoint(current.lat,current.
 document.getElementById("searchBtn").onclick = searchPlaces;
 
 function buildQuery(lat,lng,radius,cat){
-  let filters;
+  let filters = "";
+  const add = (key, val) => {
+    filters += `node[${key}${val?`="${val}"`:""}](around:${radius},${lat},${lng});`;
+    filters += `way[${key}${val?`="${val}"`:""}](around:${radius},${lat},${lng});`;
+    filters += `relation[${key}${val?`="${val}"`:""}](around:${radius},${lat},${lng});`;
+  };
   if(cat === "food_all"){
-    filters = `node["amenity"~"restaurant|cafe|fast_food|food_court"](around:${radius},${lat},${lng});way["amenity"~"restaurant|cafe|fast_food|food_court"](around:${radius},${lat},${lng});relation["amenity"~"restaurant|cafe|fast_food|food_court"](around:${radius},${lat},${lng});`;
+    filters += `node["amenity"~"restaurant|cafe|fast_food|food_court|bar|pub"](around:${radius},${lat},${lng});`;
+    filters += `way["amenity"~"restaurant|cafe|fast_food|food_court|bar|pub"](around:${radius},${lat},${lng});`;
+    filters += `relation["amenity"~"restaurant|cafe|fast_food|food_court|bar|pub"](around:${radius},${lat},${lng});`;
+    filters += `node["shop"~"convenience|supermarket|bakery|beverages|coffee"](around:${radius},${lat},${lng});`;
+    filters += `way["shop"~"convenience|supermarket|bakery|beverages|coffee"](around:${radius},${lat},${lng});`;
+  } else if(cat === "shop_food"){
+    filters += `node["shop"~"convenience|supermarket|bakery|beverages|coffee"](around:${radius},${lat},${lng});`;
+    filters += `way["shop"~"convenience|supermarket|bakery|beverages|coffee"](around:${radius},${lat},${lng});`;
   } else {
-    filters = `node["amenity"="${cat}"](around:${radius},${lat},${lng});way["amenity"="${cat}"](around:${radius},${lat},${lng});relation["amenity"="${cat}"](around:${radius},${lat},${lng});`;
+    add('"amenity"', cat);
   }
-  return `[out:json][timeout:25];(${filters});out center tags;`;
+  return `[out:json][timeout:30];(${filters});out center tags;`;
 }
 
 async function overpass(query){
   const endpoints = [
-    "https://overpass.kumi.systems/api/interpreter",
     "https://overpass-api.de/api/interpreter",
-    "https://overpass.openstreetmap.ru/api/interpreter"
+    "https://overpass.kumi.systems/api/interpreter"
   ];
+
   let lastErr;
-  for(const url of endpoints){
+  for(const base of endpoints){
     try{
-      const res = await fetch(url, {method:"POST", body: new URLSearchParams({data: query})});
-      if(!res.ok) throw new Error("HTTP "+res.status);
+      const url = base + "?data=" + encodeURIComponent(query);
+      const res = await fetch(url, { method:"GET", cache:"no-store" });
+      if(!res.ok) throw new Error(base + " HTTP " + res.status);
       return await res.json();
-    }catch(e){ lastErr=e; }
+    }catch(e){
+      console.warn("Overpass endpoint failed:", e);
+      lastErr = e;
+    }
   }
-  throw lastErr;
+  throw lastErr || new Error("Overpass failed");
 }
 
 async function searchPlaces(){
@@ -90,35 +106,39 @@ async function searchPlaces(){
       const lat = x.lat || x.center?.lat;
       const lng = x.lon || x.center?.lon;
       const tags = x.tags || {};
-      return {lat,lng,tags,dist: distance(current.lat,current.lng,lat,lng)};
-    }).filter(p => p.lat && p.lng && p.tags.name).sort((a,b)=>a.dist-b.dist);
+      const name = tags.name || tags["name:th"] || tags["name:en"];
+      return {lat,lng,tags,name,dist: distance(current.lat,current.lng,lat,lng)};
+    }).filter(p => p.lat && p.lng && p.name).sort((a,b)=>a.dist-b.dist);
 
     render(places);
-    setStatus(`พบ ${places.length} ร้าน ในรัศมี ${km(radius)}`);
+    setStatus(`พบ ${places.length} รายการ ในรัศมี ${km(radius)}`);
   }catch(e){
     console.error(e);
-    document.getElementById("results").innerHTML = `<div class="empty">ค้นหาไม่ได้ อาจเกิดจาก Overpass API ชั่วคราว กรุณาลองใหม่ หรืออัปโหลดขึ้น GitHub Pages ก่อนใช้งานจริง</div>`;
-    setStatus("ค้นหาไม่สำเร็จ");
+    document.getElementById("results").innerHTML = `<div class="empty">ค้นหาไม่ได้จาก Overpass API<br>ให้ลองกด Ctrl+F5 แล้วค้นหาใหม่ หรือรอสักครู่แล้วลองอีกครั้ง</div>`;
+    setStatus("ค้นหาไม่สำเร็จ: Overpass API ไม่ตอบสนอง");
   }
 }
 
 function clearMarkers(){ markers.forEach(m=>m.remove()); markers=[]; }
 
 function render(places){
-  document.getElementById("count").textContent = `${places.length} ร้าน`;
+  document.getElementById("count").textContent = `${places.length} รายการ`;
   const box = document.getElementById("results");
-  if(!places.length){ box.innerHTML = `<div class="empty">ไม่พบร้านในพื้นที่นี้ ลองเพิ่มรัศมีเป็น 10–15 กม.</div>`; return; }
+  if(!places.length){
+    box.innerHTML = `<div class="empty">ไม่พบข้อมูลร้านใน OpenStreetMap แถวนี้<br>ลองเพิ่มรัศมีเป็น 15–25 กม. หรือเลือก “อาหาร + คาเฟ่ ทั้งหมด”</div>`;
+    return;
+  }
 
   box.innerHTML = "";
   places.forEach((p,i)=>{
     const t=p.tags;
-    const type = t.amenity === "cafe" ? "☕ คาเฟ่/กาแฟ" : t.amenity === "fast_food" ? "🍔 ฟาสต์ฟู้ด" : "🍛 ร้านอาหาร";
+    const type = t.amenity === "cafe" ? "☕ คาเฟ่/กาแฟ" : t.amenity === "fast_food" ? "🍔 ฟาสต์ฟู้ด" : t.shop ? "🛒 ร้านค้า/ของกิน" : "🍛 ร้านอาหาร";
     const gmap = `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`;
     const osm = `https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lng}#map=18/${p.lat}/${p.lng}`;
     const tel = t.phone || t["contact:phone"] || "";
     const addr = [t["addr:housenumber"],t["addr:street"],t["addr:subdistrict"],t["addr:district"]].filter(Boolean).join(" ");
     const html = `<div class="place">
-      <h3>${i+1}. ${escapeHtml(t.name)}</h3>
+      <h3>${i+1}. ${escapeHtml(p.name)}</h3>
       <div class="meta">${type}<br>ห่างประมาณ ${km(p.dist)}${addr?`<br>📌 ${escapeHtml(addr)}`:""}${tel?`<br>☎ ${escapeHtml(tel)}`:""}</div>
       <div class="actions">
         <a href="${gmap}" target="_blank">นำทาง</a>
@@ -127,9 +147,14 @@ function render(places){
     </div>`;
     box.insertAdjacentHTML("beforeend", html);
 
-    const m = L.marker([p.lat,p.lng]).addTo(map).bindPopup(`<b>${escapeHtml(t.name)}</b><br>${type}<br>${km(p.dist)}<br><a href="${gmap}" target="_blank">นำทาง</a>`);
+    const m = L.marker([p.lat,p.lng]).addTo(map).bindPopup(`<b>${escapeHtml(p.name)}</b><br>${type}<br>${km(p.dist)}<br><a href="${gmap}" target="_blank">นำทาง</a>`);
     markers.push(m);
   });
+
+  if(markers.length){
+    const group = L.featureGroup(markers.concat(userMarker ? [userMarker] : []));
+    map.fitBounds(group.getBounds().pad(0.18));
+  }
 }
 
 function escapeHtml(s){ return String(s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
@@ -145,5 +170,5 @@ document.getElementById("installBtn").onclick = async () => {
 };
 
 if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(()=>{}));
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js?v=3").catch(()=>{}));
 }
